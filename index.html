@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestial Clock</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #050508; color: #fff; font-family: monospace; overflow: hidden; }
+        #canvas-container { position: relative; width: 100vw; height: 100vh; }
+        #controls {
+            position: absolute; bottom: 20px; left: 20px;
+            background: rgba(10, 10, 15, 0.85); padding: 12px 18px; border-radius: 8px;
+            display: flex; gap: 10px; align-items: center; border: 1px solid #333; z-index: 10;
+        }
+        button { background-color: #28283c; color: #fff; border: 1px solid #4a4a6a; padding: 8px 14px; cursor: pointer; border-radius: 4px; font-family: monospace; }
+        button:hover { background-color: #3d3d5c; }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container">
+    <div id="controls">
+        <button onclick="setRealtime()">Real-time</button>
+        <button onclick="adjustSpeed(100)">100x</button>
+        <button onclick="adjustSpeed(10000)">10,000x</button>
+        <button onclick="adjustSpeed(100000)">100,000x</button>
+        <span id="speedDisplay">Speed: 1x</span>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+camera.position.set(0, 450, 350);
+camera.lookAt(0, 0, 0);
+
+let simTime = new Date();
+let timeMultiplier = 1;
+const speedDisplay = document.getElementById('speedDisplay');
+
+function adjustSpeed(factor) { timeMultiplier = factor; updateSpeedDisplay(); }
+function setRealtime() { timeMultiplier = 1; simTime = new Date(); updateSpeedDisplay(); }
+function updateSpeedDisplay() { speedDisplay.textContent = `Speed: ${timeMultiplier.toLocaleString()}x`; }
+
+const AXIAL_TILT_RAD = 23.4 * (Math.PI / 180);
+const EARTH_ORBIT_RADIUS = 340;
+const MOON_ORBIT_RADIUS = 90;
+
+const SUN_RADIUS = 45;
+const EARTH_RADIUS = 32; 
+const MOON_RADIUS = 12; 
+
+const textureLoader = new THREE.TextureLoader();
+const earthTexture = textureLoader.load('earth_texture.jpg');
+
+// Sun & Lights
+const sunGeometry = new THREE.SphereGeometry(SUN_RADIUS, 32, 32);
+const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+scene.add(sun);
+
+const sunLight = new THREE.PointLight(0xffffff, 2.5, 2000);
+sunLight.position.set(0, 0, 0);
+scene.add(sunLight);
+
+const ambientLight = new THREE.AmbientLight(0x222233); 
+scene.add(ambientLight);
+
+// Earth (with axial tilt)
+const earthGeometry = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64);
+const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+earth.rotation.z = AXIAL_TILT_RAD; 
+scene.add(earth);
+
+// Moon
+const moonGeometry = new THREE.SphereGeometry(MOON_RADIUS, 32, 32);
+const moonMaterial = new THREE.MeshPhongMaterial({ color: 0xb0b0b0 });
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+// Orbits
+function createOrbitLine(radius) {
+    const geometry = new THREE.RingGeometry(radius - 0.5, radius + 0.5, 64);
+    const material = new THREE.MeshBasicMaterial({ color: 0x28283c, side: THREE.DoubleSide });
+    const line = new THREE.Mesh(geometry, material);
+    line.rotation.x = Math.PI / 2;
+    return line;
+}
+scene.add(createOrbitLine(EARTH_ORBIT_RADIUS));
+
+const moonSystemGroup = new THREE.Group();
+moonSystemGroup.add(createOrbitLine(MOON_ORBIT_RADIUS));
+moonSystemGroup.add(moon);
+scene.add(moonSystemGroup);
+
+function getAstronomicalAngles(date) {
+    const startOfYear = new Date(date.getFullYear(), 0, 0);
+    const dayOfYear = (date - startOfYear) / (1000 * 60 * 60 * 24);
+    const earthRevAngle = (dayOfYear / 365.25) * 2 * Math.PI - (Math.PI / 2);
+
+    const secondsToday = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds() + date.getMilliseconds() / 1000;
+    const earthRotAngle = (secondsToday / 86400) * 2 * Math.PI;
+
+    const refEpoch = new Date(Date.UTC(2024, 0, 11, 11, 57)); 
+    const daysSinceEpoch = (date - refEpoch) / (1000 * 60 * 60 * 24);
+    const moonRevAngle = ((daysSinceEpoch % 29.53059) / 29.53059) * 2 * Math.PI;
+
+    return { earthRevAngle, earthRotAngle, moonRevAngle };
+}
+
+let lastTimestamp = performance.now();
+
+function animate(currentTimestamp) {
+    const dtSeconds = (currentTimestamp - lastTimestamp) / 1000;
+    lastTimestamp = currentTimestamp;
+
+    simTime = new Date(simTime.getTime() + dtSeconds * timeMultiplier * 1000);
+    const { earthRevAngle, earthRotAngle, moonRevAngle } = getAstronomicalAngles(simTime);
+
+    const earthX = EARTH_ORBIT_RADIUS * Math.cos(earthRevAngle);
+    const earthZ = EARTH_ORBIT_RADIUS * Math.sin(earthRevAngle);
+    earth.position.set(earthX, 0, earthZ);
+    earth.rotation.y = earthRotAngle;
+
+    moonSystemGroup.position.set(earthX, 0, earthZ);
+    moon.position.set(
+        MOON_ORBIT_RADIUS * Math.cos(moonRevAngle),
+        0,
+        MOON_ORBIT_RADIUS * Math.sin(moonRevAngle)
+    );
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
