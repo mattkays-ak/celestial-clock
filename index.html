@@ -40,6 +40,7 @@
         <span id="speedDisplay">Speed: 1x</span>
     </div>
 
+    <!-- Right Side Telemetry Box -->
     <div id="telemetry-panel">
         <div class="info-title">Date & Time</div>
         <div id="dateDisplay" class="info-value">----</div>
@@ -157,7 +158,8 @@ function updateTelemetry(date, phaseProgress) {
     document.getElementById('dateDisplay').textContent = date.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
 
     // 2. Determine Moon Phase Name & Illumination
-    const phaseRatio = phaseProgress / 29.53059; // 0.0 to 1.0
+    const synodicMonth = 29.53059;
+    const phaseRatio = (phaseProgress % synodicMonth) / synodicMonth;
     let phaseName = "";
 
     if (phaseRatio < 0.03 || phaseRatio > 0.97) phaseName = "New Moon";
@@ -174,34 +176,35 @@ function updateTelemetry(date, phaseProgress) {
     document.getElementById('phaseName').textContent = phaseName;
     document.getElementById('illuminationDisplay').textContent = `Illumination: ${illumPct}%`;
 
-    // 3. Draw 2D Moon Phase Visualizer
+    // 3. Draw Correct 2D Moon Phase
     mCtx.clearRect(0, 0, 100, 100);
     const r = 40;
     const cx = 50, cy = 50;
 
-    // Draw Dark Base
+    // Background circle (Dark/Shadowed Moon Surface)
     mCtx.beginPath();
     mCtx.arc(cx, cy, r, 0, 2 * Math.PI);
     mCtx.fillStyle = "#1c1c24";
     mCtx.fill();
 
-    // Draw Illuminated Portion
-    mCtx.beginPath();
-    mCtx.fillStyle = "#e6e6fa";
+    // Foreground scanline fill (Illuminated Portion)
+    mCtx.fillStyle = "#f0f0f8";
+    
+    const angle = phaseRatio * 2 * Math.PI;
+    const cosAngle = Math.cos(angle);
 
     for (let y = -r; y <= r; y++) {
-        const xLimit = Math.sqrt(r * r - y * y);
-        const cosAngle = Math.cos(phaseRatio * 2 * Math.PI);
-        let xLit;
+        const xMax = Math.sqrt(r * r - y * y);
+        const xTerm = xMax * cosAngle;
 
         if (phaseRatio <= 0.5) {
-            // Waxing: lit on right side
-            xLit = xLimit * cosAngle;
-            mCtx.fillRect(cx + xLit, cy + y, xLimit - xLit, 1);
+            // Waxing: Light is on the RIGHT side
+            const xStart = (cosAngle >= 0) ? -xTerm : xTerm;
+            mCtx.fillRect(cx + xStart, cy + y, xMax - xStart, 1);
         } else {
-            // Waning: lit on left side
-            xLit = -xLimit * cosAngle;
-            mCtx.fillRect(cx - xLimit, cy + y, xLimit - xLit, 1);
+            // Waning: Light is on the LEFT side
+            const xEnd = (cosAngle <= 0) ? -xTerm : xTerm;
+            mCtx.fillRect(cx - xMax, cy + y, xMax + xEnd, 1);
         }
     }
 }
@@ -227,7 +230,6 @@ function animate(currentTimestamp) {
         MOON_ORBIT_RADIUS * Math.sin(moonRevAngle)
     );
 
-    // Update Telemetry Panel
     updateTelemetry(simTime, moonPhaseProgress);
 
     renderer.render(scene, camera);
