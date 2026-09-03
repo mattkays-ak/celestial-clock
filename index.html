@@ -37,6 +37,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
+// Position camera so day/night side of Earth is clearly visible
 camera.position.set(0, 450, 350);
 camera.lookAt(0, 0, 0);
 
@@ -56,34 +57,34 @@ const SUN_RADIUS = 45;
 const EARTH_RADIUS = 32; 
 const MOON_RADIUS = 12; 
 
-// 1. Sun & Lighting
+// 1. Sun & Enhanced Lighting
 const sunGeometry = new THREE.SphereGeometry(SUN_RADIUS, 32, 32);
 const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 scene.add(sun);
 
-const sunLight = new THREE.PointLight(0xffffff, 3.0, 2000);
+// Strong direct sun light
+const sunLight = new THREE.PointLight(0xffffff, 4.0, 2000);
 sunLight.position.set(0, 0, 0);
 scene.add(sunLight);
 
-const ambientLight = new THREE.AmbientLight(0x333344); 
+// High ambient light so shadowed sides remain clearly visible
+const ambientLight = new THREE.AmbientLight(0x777788); 
 scene.add(ambientLight);
 
-// 2. Textures & Fallback Materials
+// 2. Textures
 const textureLoader = new THREE.TextureLoader();
 
-// Earth Material: Uses solid blue (#1a5599) as a base so it's instantly visible
-const earthMaterial = new THREE.MeshPhongMaterial({ 
-    color: 0x1a5599, 
-    shininess: 5 
+// Earth Material
+const earthMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xffffff, 
+    roughness: 0.6 
 });
 
-// Load the Earth texture map asynchronously
 textureLoader.load(
     'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
     (texture) => {
         earthMaterial.map = texture;
-        earthMaterial.color.setHex(0xffffff); // Reset base color to white so texture displays accurately
         earthMaterial.needsUpdate = true;
     }
 );
@@ -94,18 +95,27 @@ const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 earth.rotation.z = AXIAL_TILT_RAD; 
 scene.add(earth);
 
-// 4. Moon (Light Gray material so it reflects light clearly)
-const moonGeometry = new THREE.SphereGeometry(MOON_RADIUS, 32, 32);
-const moonMaterial = new THREE.MeshPhongMaterial({ 
-    color: 0xd0d0d0,
-    shininess: 2 
+// 4. Moon (Using distinct gray texture map + Standard Material)
+const moonMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xcccccc,
+    roughness: 0.8
 });
+
+textureLoader.load(
+    'https://threejs.org/examples/textures/planets/moon_1024.jpg',
+    (texture) => {
+        moonMaterial.map = texture;
+        moonMaterial.needsUpdate = true;
+    }
+);
+
+const moonGeometry = new THREE.SphereGeometry(MOON_RADIUS, 32, 32);
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
 // 5. Orbits
 function createOrbitLine(radius) {
-    const geometry = new THREE.RingGeometry(radius - 0.5, radius + 0.5, 64);
-    const material = new THREE.MeshBasicMaterial({ color: 0x28283c, side: THREE.DoubleSide });
+    const geometry = new THREE.RingGeometry(radius - 0.75, radius + 0.75, 64);
+    const material = new THREE.MeshBasicMaterial({ color: 0x444455, side: THREE.DoubleSide });
     const line = new THREE.Mesh(geometry, material);
     line.rotation.x = Math.PI / 2;
     return line;
