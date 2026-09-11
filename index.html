@@ -2,489 +2,269 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Celestial Clock</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #F5F1E8;
-      --card-border: #E2DDD3;
-      --text-main: #111111;
-      --text-sub: #76736E;
-      --accent-orange: #E25B36;
-      --accent-blue: #3A7CA5;
-      --accent-yellow: #F0B35B;
+      --bg-color: #f7f5f0;
+      --card-bg: #f0edb6;
+      --text-color: #222;
+      --accent-color: #3b5998;
     }
-
     body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       margin: 0;
-      padding: 30px;
+      padding: 20px;
     }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+    h1 {
       margin-bottom: 20px;
     }
-
-    h1 {
-      font-size: 42px;
-      font-weight: 800;
-      margin: 0;
-      letter-spacing: -1px;
+    .container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
     }
-
-    .app-container {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 30px;
-      align-items: start;
-    }
-
-    /* Main Orbital Canvas */
-    .canvas-card {
-      border: 1px solid var(--card-border);
-      background-color: #FAF8F5;
-      padding: 20px;
+    .main-panel {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      position: relative;
+      gap: 10px;
     }
-
-    canvas#orbitCanvas {
-      background-color: #FAF8F5;
-      display: block;
-    }
-
-    /* Controls Bar */
-    .controls-bar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: center;
-      margin-top: 16px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    button {
-      background-color: var(--bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 8px 16px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    button:hover {
-      background-color: #EFEBE4;
-      border-color: var(--text-sub);
-    }
-
-    button.active {
-      background-color: var(--accent-orange);
-      color: #FFFFFF;
-      border-color: var(--accent-orange);
-    }
-
-    select {
-      background-color: var(--bg);
-      border: 1px solid var(--card-border);
-      padding: 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+    canvas {
+      background: #faf8f5;
+      border: 1px solid #ddd;
       border-radius: 4px;
     }
-
-    /* Right Side Panel matching Sketch */
-    .side-panel {
-      border: 1px solid var(--card-border);
-      background-color: #FAF8F5;
-      padding: 24px;
+    .controls {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      gap: 8px;
+      align-items: center;
     }
-
-    .panel-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .time-display {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .date-str {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .time-str {
+    button, select {
+      padding: 6px 12px;
       font-size: 14px;
-      color: var(--text-sub);
-      margin-top: 4px;
+      cursor: pointer;
     }
-
-    .moon-box {
-      border: 1px solid var(--card-border);
-      padding: 16px;
-      background-color: var(--bg);
+    .info-panel {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 12px;
+      gap: 15px;
+      padding: 15px;
+      background: #faf8f5;
+      border: 1px solid #ddd;
+      min-width: 200px;
     }
-
-    .moon-info {
-      width: 100%;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-    }
-
-    .moon-info div {
-      margin-bottom: 4px;
+    .time-display {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>Celestial Clock</h1>
-  </div>
+  <h1>Celestial Clock</h1>
 
-  <div class="app-container">
-    
-    <!-- LEFT: Top-Down Orbit View -->
-    <div class="canvas-card">
+  <div class="container">
+    <div class="main-panel">
       <canvas id="orbitCanvas" width="650" height="550"></canvas>
-
-      <!-- Simulation Controls -->
-      <div class="controls-bar">
-        <button id="btn-reverse">◄ Reverse</button>
-        <button id="btn-pause" class="active">⏸ Pause</button>
-        <button id="btn-play">► Play Real-time</button>
-        <button id="btn-ff">►► Fast Forward</button>
+      
+      <div class="controls">
+        <button id="btnReverse">◄ Reverse</button>
+        <button id="btnPause">⏸ Pause</button>
+        <button id="btnPlay">► Play Real-time</button>
+        <button id="btnFF">►► Fast Forward</button>
         
-        <select id="speed-select">
+        <select id="speedSelect">
           <option value="1">1x Speed</option>
           <option value="86400">1 Day / sec</option>
           <option value="604800">1 Week / sec</option>
           <option value="2592000">1 Month / sec</option>
         </select>
 
-        <button id="btn-reset">Reset Live</button>
+        <button id="btnReset">Reset Live</button>
       </div>
     </div>
 
-    <!-- RIGHT: Info Panel matching drawing layout -->
-    <div class="side-panel">
+    <div class="info-panel">
       <div>
-        <div class="panel-label">Current Date & Time</div>
-        <div class="time-display" style="margin-top: 8px;">
-          <div class="date-str" id="date-display">--</div>
-          <div class="time-str" id="time-display">-- AKDT</div>
-        </div>
+        <div style="font-size: 12px; letter-spacing: 1px;">CURRENT DATE & TIME</div>
+        <div class="time-display" id="dateText">--</div>
+        <div id="timeText">--</div>
       </div>
 
-      <!-- Moon Phase Graphic Box -->
-      <div class="moon-box">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
         <canvas id="moonCanvas" width="100" height="100"></canvas>
-        <div class="moon-info">
-          <div><strong>Moon phase:</strong> <span id="moon-phase-name">--</span></div>
-          <div><strong>Illumination:</strong> <span id="moon-illum-val">--%</span></div>
+        <div>
+          <div><strong>Moon phase:</strong> <span id="phaseName">--</span></div>
+          <div><strong>Illumination:</strong> <span id="illuminationText">--%</span></div>
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
-    // --- SIMULATION STATE ---
+    // System State
     let simDate = new Date();
-    let isLive = true;
-    let playDirection = 0; // -1: Reverse, 0: Paused, 1: Forward
-    let timeScale = 1; // Seconds simulated per real-time second
-    let lastAnimTime = performance.now();
+    let speedMultiplier = 1;
+    let isPaused = false;
+    let lastTimestamp = null;
 
-    // Astronomical constants
-    const AK_OFFSET_HOURS = -8; // AKDT UTC offset
+    // Constants
+    const LUNAR_MONTH = 29.53058770576; // Days per synodic month
+    const KNOWN_NEW_MOON = new Date('2026-01-18T18:12:00Z'); // Fixed reference new moon
 
-    // --- ASTRONOMICAL CALCULATIONS ---
-    function getJulianDate(date) {
-      return (date.getTime() / 86400000) + 2440587.5;
+    // Elements
+    const orbitCanvas = document.getElementById('orbitCanvas');
+    const orbitCtx = orbitCanvas.getContext('2d');
+    const moonCanvas = document.getElementById('moonCanvas');
+    const moonCtx = moonCanvas.getContext('2d');
+
+    // FIX 1: Calculate phase purely as continuous normalized float (0.0 to 1.0)
+    function getPhaseFraction(date) {
+      const msPerDay = 86400000;
+      const elapsedDays = (date - KNOWN_NEW_MOON) / msPerDay;
+      return ((elapsedDays % LUNAR_MONTH) + LUNAR_MONTH) % LUNAR_MONTH / LUNAR_MONTH;
     }
 
-    function getEarthOrbitAngle(date) {
-      // Vernal Equinox (around March 20) as 0 degrees
-      const startOfYear = new Date(date.getFullYear(), 0, 1);
-      const dayOfYear = (date - startOfYear) / (1000 * 60 * 60 * 24);
-      // March 20 is ~day 79
-      const daysSinceEquinox = dayOfYear - 79;
-      const angle = (daysSinceEquinox / 365.2422) * 2 * Math.PI;
-      return angle;
+    // Phase Name Determination
+    function getPhaseName(fraction) {
+      if (fraction < 0.03 || fraction > 0.97) return "New Moon";
+      if (fraction < 0.22) return "Waxing Crescent";
+      if (fraction < 0.28) return "First Quarter";
+      if (fraction < 0.47) return "Waxing Gibbous";
+      if (fraction < 0.53) return "Full Moon";
+      if (fraction < 0.72) return "Waning Gibbous";
+      if (fraction < 0.78) return "Third Quarter";
+      return "Waning Crescent";
     }
 
-    function getLunarPhaseData(date) {
-      const refDate = new Date(2024, 0, 11); // Known New Moon
-      const daysSinceRef = (date - refDate) / (1000 * 60 * 60 * 24);
-      const lunarCycle = 29.53058770576;
-      const phaseValue = ((daysSinceRef % lunarCycle) + lunarCycle) % lunarCycle / lunarCycle;
+    // FIX 2 & 3: Render Moon Phase using direct bounds & isolated canvas context
+    function renderMoonWidget(phaseFraction) {
+      const cx = moonCanvas.width / 2;
+      const cy = moonCanvas.height / 2;
+      const radius = 40;
 
-      const illumination = Math.round((1 - Math.cos(phaseValue * 2 * Math.PI)) / 2 * 100);
+      const illumination = 0.5 * (1 - Math.cos(2 * Math.PI * phaseFraction));
+      const isWaxing = phaseFraction < 0.5; // Direct boundary check
 
-      let phaseName = "";
-      if (phaseValue < 0.03 || phaseValue >= 0.97) phaseName = "New Moon";
-      else if (phaseValue < 0.22) phaseName = "Waxing Crescent";
-      else if (phaseValue < 0.28) phaseName = "First Quarter";
-      else if (phaseValue < 0.47) phaseName = "Waxing Gibbous";
-      else if (phaseValue < 0.53) phaseName = "Full Moon";
-      else if (phaseValue < 0.72) phaseName = "Waning Gibbous";
-      else if (phaseValue < 0.78) phaseName = "Last Quarter";
-      else phaseName = "Waning Crescent";
+      document.getElementById('phaseName').textContent = getPhaseName(phaseFraction);
+      document.getElementById('illuminationText').textContent = Math.round(illumination * 100) + '%';
 
-      return { phaseValue, phaseName, illumination };
-    }
+      moonCtx.save();
+      moonCtx.clearRect(0, 0, moonCanvas.width, moonCanvas.height);
 
-    // --- CANVAS RENDERING ---
-    function drawOrbitSystem() {
-      const canvas = document.getElementById('orbitCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const w = canvas.width;
-      const h = canvas.height;
-      const cx = w / 2;
-      const cy = h / 2;
+      // Base Dark Disk
+      moonCtx.beginPath();
+      moonCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      moonCtx.fillStyle = '#222222';
+      moonCtx.fill();
 
-      ctx.clearRect(0, 0, w, h);
-
-      // 1. Draw Season Labels matching sketch
-      ctx.font = '13px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#76736E';
-      ctx.textAlign = 'center';
-
-      ctx.fillText('Winter Solstice', cx, cy - 200);
-      ctx.fillText('Summer Solstice', cx, cy + 215);
-      ctx.textAlign = 'right';
-      ctx.fillText('Spring Equinox', cx - 210, cy + 4);
-      ctx.textAlign = 'left';
-      ctx.fillText('Fall Equinox', cx + 210, cy + 4);
-
-      // 2. Earth Orbit Path
-      const orbitRadius = 180;
-      ctx.beginPath();
-      ctx.arc(cx, cy, orbitRadius, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#E2DDD3';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // 3. Central Sun
-      ctx.beginPath();
-      ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
-      ctx.fillStyle = '#F0B35B';
-      ctx.fill();
-      ctx.strokeStyle = '#E25B36';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // 4. Calculate Earth Position
-      const earthAngle = getEarthOrbitAngle(simDate);
-      // Coordinate mapping: Spring = Left (-X), Fall = Right (+X), Winter = Top (-Y), Summer = Bottom (+Y)
-      const earthX = cx - orbitRadius * Math.cos(earthAngle);
-      const earthY = cy + orbitRadius * Math.sin(earthAngle);
-
-      // Moon Orbit Path around Earth
-      const moonOrbitRadius = 36;
-      ctx.beginPath();
-      ctx.arc(earthX, earthY, moonOrbitRadius, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#D8D3C8';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // 5. Calculate Moon Position relative to Earth
-      const lunarData = getLunarPhaseData(simDate);
-      // Phase 0 = New Moon (Moon between Earth and Sun)
-      const moonAngle = earthAngle + (lunarData.phaseValue * 2 * Math.PI);
-      const moonX = earthX + moonOrbitRadius * Math.cos(moonAngle);
-      const moonY = earthY - moonOrbitRadius * Math.sin(moonAngle);
-
-      // 6. Draw Earth
-      ctx.beginPath();
-      ctx.arc(earthX, earthY, 14, 0, 2 * Math.PI);
-      ctx.fillStyle = '#3A7CA5';
-      ctx.fill();
-      ctx.strokeStyle = '#111111';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Simple continent details on Earth
-      ctx.beginPath();
-      ctx.arc(earthX - 3, earthY - 2, 4, 0, 2 * Math.PI);
-      ctx.fillStyle = '#83B692';
-      ctx.fill();
-
-      // 7. Draw Moon Body (Half Lit facing Sun at center)
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = '#1C1C1E'; // Dark base
-      ctx.fill();
-
-      // Draw lit hemisphere toward central Sun
-      const angleToSun = Math.atan2(cy - moonY, cx - moonX);
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 6, angleToSun - Math.PI / 2, angleToSun + Math.PI / 2, false);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 6, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#76736E';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // --- DRAW MOON PHASE CANVAS (RIGHT PANEL) ---
-    function drawMoonPhasePanel(lunarData) {
-      const canvas = document.getElementById('moonCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const size = canvas.width;
-      const cx = size / 2;
-      const cy = size / 2;
-      const r = size / 2 - 6;
-
-      const illum = lunarData.illumination / 100;
-      const phase = lunarData.phaseName.toLowerCase();
-      const isWaning = phase.includes('waning') || phase.includes('last');
-      const isFull = phase.includes('full');
-      const isNew = phase.includes('new');
-
-      ctx.clearRect(0, 0, size, size);
-
-      // Dark background disk
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-      ctx.fillStyle = '#1C1C1E';
-      ctx.fill();
-
-      if (isFull || illum >= 0.99) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fill();
-      } else if (!isNew && illum > 0.01) {
-        const curveWidth = Math.abs(r * (2 * illum - 1));
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-
-        if (isWaning) {
-          ctx.arc(cx, cy, r, Math.PI / 2, (3 * Math.PI) / 2, false);
-          ctx.ellipse(cx, cy, curveWidth, r, 0, (3 * Math.PI) / 2, Math.PI / 2, illum >= 0.5);
-        } else {
-          ctx.arc(cx, cy, r, (3 * Math.PI) / 2, Math.PI / 2, false);
-          ctx.ellipse(cx, cy, curveWidth, r, 0, Math.PI / 2, (3 * Math.PI) / 2, illum < 0.5);
-        }
-        ctx.fill();
+      // Illuminated Portion
+      moonCtx.beginPath();
+      if (isWaxing) {
+        moonCtx.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, false);
+      } else {
+        moonCtx.arc(cx, cy, radius, Math.PI / 2, -Math.PI / 2, false);
       }
 
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#E2DDD3';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
+      const xRadius = Math.abs(radius * Math.cos(2 * Math.PI * phaseFraction));
 
-    // --- UI UPDATER ---
-    function updateUI() {
-      const dateOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-      const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
-
-      document.getElementById('date-display').innerText = simDate.toLocaleDateString('en-US', dateOptions);
-      document.getElementById('time-display').innerText = simDate.toLocaleTimeString('en-US', timeOptions);
-
-      const lunarData = getLunarPhaseData(simDate);
-      document.getElementById('moon-phase-name').innerText = lunarData.phaseName;
-      document.getElementById('moon-illum-val').innerText = `${lunarData.illumination}%`;
-
-      drawMoonPhasePanel(lunarData);
-      drawOrbitSystem();
-    }
-
-    // --- ANIMATION LOOP ---
-    function animate(now) {
-      const deltaSec = (now - lastAnimTime) / 1000;
-      lastAnimTime = now;
-
-      if (isLive) {
-        simDate = new Date();
-      } else if (playDirection !== 0) {
-        const addMs = playDirection * timeScale * deltaSec * 1000;
-        simDate = new Date(simDate.getTime() + addMs);
+      if (phaseFraction < 0.25 || phaseFraction > 0.75) {
+        moonCtx.ellipse(cx, cy, xRadius, radius, 0, Math.PI / 2, -Math.PI / 2, isWaxing);
+      } else {
+        moonCtx.ellipse(cx, cy, xRadius, radius, 0, Math.PI / 2, -Math.PI / 2, !isWaxing);
       }
 
-      updateUI();
+      moonCtx.fillStyle = '#f4f4f0';
+      moonCtx.fill();
+      moonCtx.restore();
+    }
+
+    function renderOrbitSystem(phaseFraction) {
+      const width = orbitCanvas.width;
+      const height = orbitCanvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+
+      orbitCtx.save();
+      orbitCtx.clearRect(0, 0, width, height);
+
+      // Orbit Path
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, 180, 0, Math.PI * 2);
+      orbitCtx.strokeStyle = '#e0e0e0';
+      orbitCtx.setLineDash([4, 4]);
+      orbitCtx.stroke();
+      orbitCtx.setLineDash([]);
+
+      // Sun
+      orbitCtx.beginPath();
+      orbitCtx.arc(cx, cy, 25, 0, Math.PI * 2);
+      orbitCtx.fillStyle = '#f5a623';
+      orbitCtx.fill();
+
+      // Earth Position (Annual)
+      const startOfYear = new Date(simDate.getFullYear(), 0, 1);
+      const yearFraction = (simDate - startOfYear) / (365.25 * 86400000);
+      const earthAngle = yearFraction * Math.PI * 2 - Math.PI / 2;
+      
+      const earthX = cx + Math.cos(earthAngle) * 180;
+      const earthY = cy + Math.sin(earthAngle) * 180;
+
+      // Earth
+      orbitCtx.beginPath();
+      orbitCtx.arc(earthX, earthY, 12, 0, Math.PI * 2);
+      orbitCtx.fillStyle = '#4a90e2';
+      orbitCtx.fill();
+
+      // Moon Position (Synodic relative to Earth)
+      const moonAngle = phaseFraction * Math.PI * 2;
+      const moonDist = 35;
+      const moonX = earthX + Math.cos(moonAngle) * moonDist;
+      const moonY = earthY + Math.sin(moonAngle) * moonDist;
+
+      // Moon Body
+      orbitCtx.beginPath();
+      orbitCtx.arc(moonX, moonY, 5, 0, Math.PI * 2);
+      orbitCtx.fillStyle = '#888888';
+      orbitCtx.fill();
+
+      orbitCtx.restore();
+    }
+
+    function updateUIDisplay() {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('dateText').textContent = simDate.toLocaleDateString(undefined, options);
+      document.getElementById('timeText').textContent = simDate.toLocaleTimeString();
+
+      const phase = getPhaseFraction(simDate);
+      renderMoonWidget(phase);
+      renderOrbitSystem(phase);
+    }
+
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (!isPaused) {
+        simDate = new Date(simDate.getTime() + delta * speedMultiplier * 1000);
+      }
+
+      updateUIDisplay();
       requestAnimationFrame(animate);
     }
 
-    // --- CONTROLS HANDLERS ---
-    function setControlState(dir, live = false) {
-      isLive = live;
-      playDirection = dir;
+    // Event Controls
+    document.getElementById('btnPause').onclick = () => isPaused = true;
+    document.getElementById('btnPlay').onclick = () => { isPaused = false; speedMultiplier = 1; };
+    document.getElementById('btnReverse').onclick = () => { isPaused = false; speedMultiplier = -Math.abs(speedMultiplier); };
+    document.getElementById('btnFF').onclick = () => { isPaused = false; speedMultiplier = 86400; };
+    document.getElementById('speedSelect').onchange = (e) => { speedMultiplier = parseFloat(e.target.value); };
+    document.getElementById('btnReset').onclick = () => { simDate = new Date(); isPaused = false; speedMultiplier = 1; };
 
-      document.getElementById('btn-reverse').classList.toggle('active', dir === -1);
-      document.getElementById('btn-pause').classList.toggle('active', dir === 0 && !live);
-      document.getElementById('btn-play').classList.toggle('active', dir === 1 || live);
-      document.getElementById('btn-ff').classList.toggle('active', dir === 2);
-    }
-
-    document.getElementById('btn-reverse').onclick = () => {
-      timeScale = parseFloat(document.getElementById('speed-select').value);
-      setControlState(-1);
-    };
-
-    document.getElementById('btn-pause').onclick = () => {
-      setControlState(0);
-    };
-
-    document.getElementById('btn-play').onclick = () => {
-      timeScale = 1;
-      setControlState(1, true);
-    };
-
-    document.getElementById('btn-ff').onclick = () => {
-      timeScale = parseFloat(document.getElementById('speed-select').value);
-      if (timeScale === 1) timeScale = 86400; // Default FF speed
-      setControlState(1);
-      document.getElementById('btn-ff').classList.add('active');
-    };
-
-    document.getElementById('speed-select').onchange = (e) => {
-      timeScale = parseFloat(e.target.value);
-    };
-
-    document.getElementById('btn-reset').onclick = () => {
-      simDate = new Date();
-      timeScale = 1;
-      setControlState(1, true);
-    };
-
-    // --- INITIALIZATION ---
-    requestAnimationFrame((now) => {
-      lastAnimTime = now;
-      animate(now);
-    });
+    // Start loop
+    requestAnimationFrame(animate);
   </script>
 </body>
 </html>
